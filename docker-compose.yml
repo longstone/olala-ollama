@@ -1,0 +1,31 @@
+# from https://github.com/open-webui/open-webui/blob/main/docker-compose.yaml
+services:
+  ollama:
+    volumes:
+      - ${OLLAMA_VOLUMEN}:/root/.ollama
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
+    image: ollama/ollama:0.7.0
+
+  open-webui:
+    build:
+      context: .
+      args:
+        OLLAMA_BASE_URL: '/ollama'
+      dockerfile: Dockerfile
+    image: ghcr.io/open-webui/open-webui:open-webui:git-e74c06d-cuda
+    container_name: open-webui
+    volumes:
+      - ${WEBUI_VOLUMEN}:/app/backend/data
+    depends_on:
+      - ollama
+    ports:
+      - ${OPEN_WEBUI_PORT-3000}:8080
+    environment:
+      - 'OLLAMA_BASE_URL=http://ollama:11434'
+      - 'WEBUI_SECRET_KEY='
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
